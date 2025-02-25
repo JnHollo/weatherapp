@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+    <title>Weather App</title>
+    <link rel="icon" type="image/x-icon" href="/images/favicon.ico">
+    <link rel="apple-touch-icon" href="images/apple-touch-icon.png">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css">
+    <style>
+        body {
+            background-image: url('images/background.jpg');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            font-family: Arial, sans-serif;
+        }
+
+        .container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            flex-direction: column;
+        }
+
+        .card {
+            background-color: rgba(255, 255, 255, 0.8);
+            padding: 30px;
+            border-radius: 15px;
+            width: 100%;
+            max-width: 400px;
+            margin-bottom: 20px;
+            animation: fadeInUp 1s ease-in-out; /* Add animation here */
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: #333;
+            margin-top: 20px;
+        }
+
+        h2, h3, p {
+            color: #333;
+        }
+
+        .bi {
+            font-size: 1.2rem;
+            margin-left: 10px;
+            vertical-align: middle;
+        }
+
+        .bi-thermometer {
+            color: orange;
+        }
+
+        .bi-droplet {
+            color: blue;
+        }
+
+        .weather-icon {
+            font-size: 2rem;
+            margin-bottom: 15px;
+        }
+
+        .sunny {
+            color: yellow;
+        }
+
+        .cloudy {
+            color: gray;
+        }
+
+        .cloudy-with-sun {
+            color: orange;
+        }
+
+        .rainy {
+            color: blue;
+        }
+
+        .snowy {
+            color: white;
+        }
+
+        footer {
+            margin-top: 20px;
+            color: #333;
+        }
+
+        footer a {
+            color: #007bff;
+            text-decoration: none;
+        }
+
+        footer a:hover {
+            text-decoration: underline;
+        }
+
+        .weather-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 1.2rem;
+        }
+
+        .weather-description {
+            font-size: 1rem;
+            color: #666;
+            text-align: center;
+            margin-top: 10px;
+        }
+
+        .weather-info {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* Adjust size of temperature and humidity */
+        #temperature, #humidity {
+            display: inline-block;
+            font-size: 1.5rem; /* Reduced font size */
+            margin: 0;
+        }
+
+        #temperature {
+            margin-right: 15px;
+        }
+
+        /* Fix the icons and their alignment */
+        .weather-info i {
+            font-size: 1.5rem;
+            margin-right: 10px;
+        }
+
+        /* Fade in and slide up animation */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+    </style>
+</head>
+<body>
+    <h1 class="text-center">Weather App</h1>
+    <div class="container text-center mt-5">
+        <div class="card p-4" style="max-width: 400px; margin: 0 auto;">
+            <h2 id="location">Finding Coordinates...</h2>
+            <div class="weather-info">
+                <div>
+                    <h3 id="temperature">--°F <i class="bi bi-thermometer" aria-label="Temperature"></i></h3>
+                </div>
+                <div>
+                    <p id="humidity">--% <i class="bi bi-droplet" aria-label="Humidity"></i></p>
+                </div>
+            </div>
+            <div class="weather-description" id="weather-description"></div>
+            <i id="weather-icon" class="bi weather-icon" aria-label="Weather condition"></i>
+        </div>
+        <footer class="text-center">
+            <p>Data courtesy of <a href="https://open-meteo.com/en/docs" target="_blank">Open-Meteo</a></p>
+        </footer>
+    </div>
+    
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://momentjs.com/downloads/moment.min.js"></script>
+    <script>
+        function fetchWeather(lat, lon) {
+            const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&hourly=temperature_2m,relative_humidity_2m,precipitation_probability,precipitation,weather_code&temperature_unit=fahrenheit`;
+
+            fetch(url)
+                .then(response => response.json())
+                .then(data => {
+                    const currentWeather = data.hourly;
+                    
+                    const temperature = currentWeather.temperature_2m[0];
+                    const humidity = currentWeather.relative_humidity_2m[0];
+                    const weatherCode = currentWeather.weather_code[0];
+
+                    document.getElementById('temperature').textContent = `${temperature}°F`;
+                    document.getElementById('humidity').textContent = `${humidity}%`;
+
+                    let weatherIconClass;
+                    let weatherDesc;
+
+                    switch (weatherCode) {
+                        case 0: 
+                            weatherIconClass = 'bi-sun sunny';
+                            weatherDesc = 'Sunny';
+                            break;
+                        case 1:
+                        case 2: 
+                            weatherIconClass = 'bi-cloud-sun cloudy-with-sun';
+                            weatherDesc = 'Partly Cloudy';
+                            break;
+                        case 3: 
+                            weatherIconClass = 'bi-cloud cloudy';
+                            weatherDesc = 'Cloudy';
+                            break;
+                        case 51:
+                        case 53: 
+                            weatherIconClass = 'bi-cloud-drizzle rainy';
+                            weatherDesc = 'Drizzle';
+                            break;
+                        case 61:
+                        case 63: 
+                            weatherIconClass = 'bi-cloud-rain rainy';
+                            weatherDesc = 'Rainy';
+                            break;
+                        case 71:
+                        case 73: 
+                            weatherIconClass = 'bi-snow snowy';
+                            weatherDesc = 'Snowy';
+                            break;
+                        default: 
+                            weatherIconClass = 'bi-sun sunny';
+                            weatherDesc = 'Clear';
+                    }
+
+                    document.getElementById('weather-icon').className = `bi ${weatherIconClass}`;
+                    document.getElementById('weather-description').textContent = weatherDesc;
+                })
+                .catch(error => alert('Failed to fetch weather data.'));
+        }
+
+        function getUserLocation() {
+            if ("geolocation" in navigator) {
+                navigator.geolocation.getCurrentPosition(
+                    position => {
+                        const lat = position.coords.latitude;
+                        const lon = position.coords.longitude;
+                        document.getElementById('location').textContent = `Location: Lat ${lat.toFixed(2)}, Lon ${lon.toFixed(2)}`;
+                        fetchWeather(lat, lon);
+                    },
+                    error => {
+                        alert("Location access denied. Using default location.");
+                        fetchWeather(36.1628, -85.5016);
+                        document.getElementById('location').textContent = "Cookeville, TN";
+                    }
+                );
+            } else {
+                alert("Using default location (Cookeville, TN).");
+                fetchWeather(36.1628, -85.5016);
+                document.getElementById('location').textContent = "Cookeville, TN";
+            }
+        }
+
+        getUserLocation();
+    </script>
+</body>
+</html>
